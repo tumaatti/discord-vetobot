@@ -39,7 +39,8 @@ async def veto(ctx, *args):
     argsl = list(args)
     message = (
         '```\n'
-        'Maps: Anubis, Cache, Dust2, Inferno, Mirage, Nuke, Train, Vertigo\n\n'
+        'Maps: Anubis, Cache, Dust2, Inferno, Mirage, Nuke, '
+        'Overpass, Train, Vertigo\n\n'
         'Veto order:\n'
     )
     for i in range(len(argsl)):
