@@ -33,7 +33,10 @@ async def ping(ctx):
 
 @bot.command()
 async def veto(ctx, *args):
-    if len(args) > 5:
+    if len(args) == 0:
+        await ctx.send('gimme players')
+        return
+    elif len(args) > 5:
         await ctx.send('too many players')
         return
     argsl = list(args)
