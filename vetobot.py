@@ -20,6 +20,70 @@ bot = commands.Bot(
     intents=intents
 )
 
+VETO_RUNNING = False
+MAPS = (
+    'anubis',
+    'cache',
+    'dust2',
+    'inferno',
+    'mirage',
+    'nuke',
+    'overpass',
+    'train',
+    'vertigo',
+)
+NUM_OF_PLAYERS = 0
+PLAYERS = []
+VETOED = 0
+
+MESSAGE_HEADER = '```\n'
+for i, m in enumerate(MAPS):
+    if i == len(MAPS) - 1:
+        MESSAGE_HEADER += f'{m.capitalize()}'
+    else:
+        MESSAGE_HEADER += f'{m.capitalize()}, '
+
+MESSAGE_HEADER += '\n\nVeto order:\n'
+
+
+class Player:
+    global MAPS
+
+    def __init__(self, name):
+        self.name = name
+        self.mapveto = ''
+
+    def __str__(self):
+        return f'{self.name} {self.mapveto}'
+
+    def add_map(self, mapveto):
+        if mapveto in MAPS:
+            self.mapveto = mapveto.capitalize()
+
+
+def construct_message(PLAYERS):
+    message = ''
+    i = 0
+    tmp = []
+    for p in PLAYERS:
+        tmp.append(len(str(p.name)))
+
+    max_p = max(tmp)
+
+    for p in PLAYERS:
+        if i < len(PLAYERS) - 3:
+            message += (
+                f"Ban:  {p.name} {(max_p - len(p.name)) * ' ' } {p.mapveto}\n"
+            )
+        else:
+            message += (
+                f"Pick: {p.name} {(max_p - len(p.name)) * ' ' } {p.mapveto}\n"
+            )
+        i += 1
+
+    message += '```'
+    return message
+
 
 @bot.event
 async def on_ready():
@@ -32,27 +96,82 @@ async def ping(ctx):
 
 
 @bot.command()
-async def veto(ctx, *args):
+async def vetostop(ctx):
+    global PLAYERS
+    global VETO_RUNNING
+    global VETOED
+
+    PLAYERS = []
+    VETOED = 0
+    VETO_RUNNING = False
+
+    await ctx.send('veto aborted')
+
+
+@bot.command()
+async def veto(ctx, vetomap):
+    global PLAYERS
+    global MAPS
+    global MESSAGE_HEADER
+    global VETOED
+    global VETO_RUNNING
+
+    if not VETO_RUNNING:
+        await ctx.send('no active veto')
+        return
+
+    vetoer = str(ctx.author).lower()
+    vetoer, _ = vetoer.split('#')
+
+    if vetoer != PLAYERS[VETOED].name:
+        await ctx.send('incorrect vetoer')
+        return
+
+    if vetoer == PLAYERS[VETOED].name.lower() and vetomap in MAPS:
+        PLAYERS[VETOED].add_map(vetomap.lower())
+        VETOED += 1
+
+    message = MESSAGE_HEADER
+    message += construct_message(PLAYERS)
+    await ctx.send(message)
+    if VETOED == NUM_OF_PLAYERS:
+        VETO_RUNNING = False
+        VETOED = 0
+        print('VETO RUNNING: ', VETO_RUNNING)
+
+
+@bot.command(name='vetostart')
+async def start_veto(ctx, *args):
+    global MAPS
+    global MESSAGE_HEADER
+    global NUM_OF_PLAYERS
+    global PLAYER
+    global VETO_RUNNING
+
+    if VETO_RUNNING:
+        await ctx.send(
+            'veto already running use !veto + map_name to veto!'
+        )
+        return
+
+    message = MESSAGE_HEADER
     if len(args) == 0:
         await ctx.send('gimme players')
         return
+
     elif len(args) > 5:
         await ctx.send('too many players')
         return
+
+    VETO_RUNNING = True
+    NUM_OF_PLAYERS = len(args)
     argsl = list(args)
-    message = (
-        '```\n'
-        'Maps: Anubis, Cache, Dust2, Inferno, Mirage, Nuke, '
-        'Overpass, Train, Vertigo\n\n'
-        'Veto order:\n'
-    )
-    for i in range(len(argsl)):
-        vetoer = argsl.pop(random.randint(0, len(argsl) - 1))
-        if i < len(args) - 3:
-            message += f'Ban:  {vetoer}\n'
-        else:
-            message += f'Pick: {vetoer}\n'
-    message += '```'
+    for i in range(NUM_OF_PLAYERS):
+        rnd = random.randint(0, len(argsl) - 1)
+        a = argsl.pop(rnd)
+        PLAYERS.append(Player(a))
+
+    message += construct_message(PLAYERS)
 
     await ctx.send(message)
 
