@@ -140,8 +140,8 @@ async def veto(ctx, vetomap):
         print('VETO RUNNING: ', VETO_RUNNING)
 
 
-@bot.command(name='vetostart')
-async def start_veto(ctx, *args):
+@bot.command(name='vetostart', pass_sontext=True)
+async def start_veto(ctx, *args: discord.User):
     global MAPS
     global MESSAGE_HEADER
     global NUM_OF_PLAYERS
@@ -168,11 +168,11 @@ async def start_veto(ctx, *args):
     argsl = list(args)
     for i in range(NUM_OF_PLAYERS):
         rnd = random.randint(0, len(argsl) - 1)
-        a = argsl.pop(rnd)
-        PLAYERS.append(Player(a))
+        # original username: tumaatti#1111
+        username, _ = str(argsl.pop(rnd)).split('#')
+        PLAYERS.append(Player(username))
 
     message += construct_message(PLAYERS)
-
     await ctx.send(message)
 
 
