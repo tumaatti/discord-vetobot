@@ -122,12 +122,14 @@ async def veto(ctx, vetomap):
 
     vetoer = str(ctx.author).lower()
     vetoer, _ = vetoer.split('#')
+    print(vetoer)
+    print(PLAYERS[VETOED])
 
-    if vetoer != PLAYERS[VETOED].name:
+    if vetoer != PLAYERS[VETOED].name.lower():
         await ctx.send('incorrect vetoer')
         return
 
-    if vetoer == PLAYERS[VETOED].name.lower() and vetomap in MAPS:
+    if vetoer == PLAYERS[VETOED].name.lower() and vetomap.lower() in MAPS:
         PLAYERS[VETOED].add_map(vetomap.lower())
         VETOED += 1
 
@@ -137,6 +139,7 @@ async def veto(ctx, vetomap):
     if VETOED == NUM_OF_PLAYERS:
         VETO_RUNNING = False
         VETOED = 0
+        PLAYERS = []
         print('VETO RUNNING: ', VETO_RUNNING)
 
 
