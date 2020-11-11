@@ -49,14 +49,14 @@ MESSAGE_HEADER += '\n\nVeto order:\n'
 class Player:
     global MAPS
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
         self.mapveto = ''
 
     def __str__(self):
         return f'{self.name} {self.mapveto}'
 
-    def add_map(self, mapveto):
+    def add_map(self, mapveto: str):
         if mapveto in MAPS:
             self.mapveto = mapveto.capitalize()
 
@@ -90,12 +90,12 @@ async def on_ready():
     print('Logged in as', bot.user)
 
 
-@bot.command()
+@bot.command(help='Pong')
 async def ping(ctx):
     await ctx.send('pong')
 
 
-@bot.command()
+@bot.command(help='Abort current veto')
 async def vetostop(ctx):
     global PLAYERS
     global VETO_RUNNING
@@ -108,7 +108,7 @@ async def vetostop(ctx):
     await ctx.send('veto aborted')
 
 
-@bot.command()
+@bot.command(help='Veto on your turn')
 async def veto(ctx, vetomap):
     global PLAYERS
     global MAPS
@@ -140,7 +140,11 @@ async def veto(ctx, vetomap):
         print('VETO RUNNING: ', VETO_RUNNING)
 
 
-@bot.command(name='vetostart', pass_sontext=True)
+@bot.command(
+    name='vetostart',
+    pass_sontext=True,
+    help='<user> <user> ... Start veto with discord usernames',
+)
 async def start_veto(ctx, *args: discord.User):
     global MAPS
     global MESSAGE_HEADER
