@@ -1,9 +1,14 @@
 import os
 import random
 
+
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+
+from utils.message_utils import construct_vetoed_maps
+from utils.message_utils import construct_message_veto_list
+from utils.message_utils import add_list_to_message
 
 load_dotenv()
 
@@ -37,12 +42,7 @@ PLAYERS = []
 VETOED = 0
 
 MESSAGE_HEADER = '```\n'
-for i, m in enumerate(MAPS):
-    if i == len(MAPS) - 1:
-        MESSAGE_HEADER += f'{m.capitalize()}'
-    else:
-        MESSAGE_HEADER += f'{m.capitalize()}, '
-
+MESSAGE_HEADER += add_list_to_message(MESSAGE_HEADER, MAPS)
 MESSAGE_HEADER += '\n\nVeto order:\n'
 
 
@@ -52,6 +52,7 @@ class Player:
     def __init__(self, name: str):
         self.name = name
         self.mapveto = ''
+        self.vetotype = ''
 
     def __str__(self):
         return f'{self.name} {self.mapveto}'
@@ -60,29 +61,17 @@ class Player:
         if mapveto in MAPS:
             self.mapveto = mapveto.capitalize()
 
+    def set_vetotype(self, vetotype: str):
+        self.vetotype = vetotype
 
-def construct_message(PLAYERS):
-    message = ''
-    i = 0
-    tmp = []
-    for p in PLAYERS:
-        tmp.append(len(str(p.name)))
 
-    max_p = max(tmp)
-
-    for p in PLAYERS:
-        if i < len(PLAYERS) - 3:
-            message += (
-                f"Ban:  {p.name} {(max_p - len(p.name)) * ' ' } {p.mapveto}\n"
-            )
-        else:
-            message += (
-                f"Pick: {p.name} {(max_p - len(p.name)) * ' ' } {p.mapveto}\n"
-            )
-        i += 1
-
-    message += '```'
-    return message
+def end_veto():
+    global PLAYERS
+    global VETO_RUNNING
+    global VETOED
+    VETO_RUNNING = False
+    VETOED = 0
+    PLAYERS = []
 
 
 @bot.event
@@ -97,14 +86,7 @@ async def ping(ctx):
 
 @bot.command(help='Abort current veto')
 async def vetostop(ctx):
-    global PLAYERS
-    global VETO_RUNNING
-    global VETOED
-
-    PLAYERS = []
-    VETOED = 0
-    VETO_RUNNING = False
-
+    end_veto()
     await ctx.send('veto aborted')
 
 
@@ -134,13 +116,12 @@ async def veto(ctx, vetomap):
         VETOED += 1
 
     message = MESSAGE_HEADER
-    message += construct_message(PLAYERS)
+    message += construct_message_veto_list(PLAYERS)
+    message += construct_vetoed_maps(PLAYERS)
+    message += '```'
     await ctx.send(message)
     if VETOED == NUM_OF_PLAYERS:
-        VETO_RUNNING = False
-        VETOED = 0
-        PLAYERS = []
-        print('VETO RUNNING: ', VETO_RUNNING)
+        end_veto()
 
 
 @bot.command(
@@ -179,7 +160,8 @@ async def start_veto(ctx, *args: discord.User):
         username, _ = str(argsl.pop(rnd)).split('#')
         PLAYERS.append(Player(username))
 
-    message += construct_message(PLAYERS)
+    message += construct_message_veto_list(PLAYERS)
+    message += '```'
     await ctx.send(message)
 
 
