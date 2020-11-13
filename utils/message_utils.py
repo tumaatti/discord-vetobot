@@ -22,7 +22,6 @@ def construct_message_veto_list(PLAYERS):
         tmp.append(len(str(p.name)))
 
     max_p = max(tmp)
-
     for p in PLAYERS:
         if i < len(PLAYERS) - 3:
             message += (
@@ -35,6 +34,54 @@ def construct_message_veto_list(PLAYERS):
             )
             p.set_vetotype('pick')
         i += 1
+
+    return message
+
+
+def construct_message_best_of_veto_list(PLAYERS, MAPS, num_of_maps):
+    # MAP VETO memos for BoN
+    # [0, 1] always ban
+    # [2, 3] BO1: ban, BO3: Pick, BO5: Pick
+    # [4, 5] BO1: ban, BO3: Ban,  BO5: Pick
+    # [6]    BO1: dec, BO3: dec,  BO5: dec
+
+    message = ''
+    last_map = ''
+    if len(MAPS) == 1:
+        last_map = MAPS[0]
+
+    tmp = []
+    for p in PLAYERS[:1]:
+        tmp.append(len(str(p.name)))
+
+    max_p = max(tmp)
+    for i in range(0, 6):
+        if (
+            (i in [0, 1]) or
+            (i in [2, 3] and num_of_maps == 1) or
+            (i in [4, 5] and num_of_maps in [1, 3])
+        ):
+            message += (
+                f"Ban:  {PLAYERS[i].name} "
+                f"{(max_p - len(PLAYERS[i].name)) * ' ' } "
+                f"{PLAYERS[i].mapveto}\n"
+            )
+            PLAYERS[i].set_vetotype('ban')
+            # MAPS.remove(PLAYERS[i].mapveto.lower())
+
+        elif i == 6:
+            message += (
+                f'Final map: {last_map}'
+            )
+
+        else:
+            message += (
+                f"Pick: {PLAYERS[i].name} "
+                f"{(max_p - len(PLAYERS[i].name)) * ' ' } "
+                f"{PLAYERS[i].mapveto}\n"
+            )
+            PLAYERS[i].set_vetotype('pick')
+            # MAPS.remove(PLAYERS[i].mapveto.lower())
 
     return message
 
