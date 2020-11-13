@@ -2,6 +2,7 @@ import os
 import random
 
 import discord
+import discord.utils
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -10,7 +11,6 @@ from utils.message_utils import construct_message_veto_list
 from utils.message_utils import add_list_to_message
 
 load_dotenv()
-
 TOKEN = os.getenv('TOKEN')
 
 description = "A bot"
@@ -71,6 +71,42 @@ def end_veto():
     VETOED = 0
     PLAYERS = []
     BANNED = []
+
+
+def start_veto(ctx, users):
+    global NUM_OF_PLAYERS
+    global MAPS
+    global PLAYER
+    global VETO_RUNNING
+
+    NUM_OF_PLAYERS = len(users)
+
+    if VETO_RUNNING:
+        return 'veto already running! use !veto <map_name> to veto!'
+
+    if NUM_OF_PLAYERS == 0:
+        return 'gimme players'
+
+    elif NUM_OF_PLAYERS > 5:
+        return 'too many players'
+
+    message = ''
+    message = add_list_to_message(message, MAPS, [])
+    message += '```\n\nVeto order:\n'
+
+    VETO_RUNNING = True
+    for i in range(NUM_OF_PLAYERS):
+        rnd = random.randint(0, NUM_OF_PLAYERS - 1)
+        # original username: tumaatti#1111
+        username = str(users.pop(rnd))
+        if '#' in username:
+            username, _ = username.split('#')
+        PLAYERS.append(Player(username))
+
+    message += construct_message_veto_list(PLAYERS)
+    message += '```'
+
+    return message
 
 
 @bot.event
@@ -161,41 +197,25 @@ async def veto(ctx, vetomap):
     pass_sontext=True,
     help='<user> <user> ... Start veto with discord usernames',
 )
-async def start_veto(ctx, *args: discord.User):
-    global MAPS
-    global NUM_OF_PLAYERS
-    global PLAYER
-    global VETO_RUNNING
+async def vetostart(ctx, *args: discord.User):
+    users = list(args)
+    message = start_veto(ctx, users)
+    await ctx.send(message)
 
-    message = ''
-    message = add_list_to_message(message, MAPS, [])
-    message += '```\n\nVeto order:\n'
 
-    if VETO_RUNNING:
-        await ctx.send(
-            'veto already running use !veto + map_name to veto!'
-        )
-        return
+@bot.command(
+    help='<voice channelname> Start veto with users in voice channel'
+)
+async def vetostartv(ctx, channel_name):
+    voice_channel = discord.utils.get(
+        ctx.guild.voice_channels,
+        name=channel_name,
+    )
+    users = []
+    for m in voice_channel.members:
+        users.append(m.name)
 
-    if len(args) == 0:
-        await ctx.send('gimme players')
-        return
-
-    elif len(args) > 5:
-        await ctx.send('too many players')
-        return
-
-    VETO_RUNNING = True
-    NUM_OF_PLAYERS = len(args)
-    argsl = list(args)
-    for i in range(NUM_OF_PLAYERS):
-        rnd = random.randint(0, len(argsl) - 1)
-        # original username: tumaatti#1111
-        username, _ = str(argsl.pop(rnd)).split('#')
-        PLAYERS.append(Player(username))
-
-    message += construct_message_veto_list(PLAYERS)
-    message += '```'
+    message = start_veto(ctx, users)
     await ctx.send(message)
 
 
