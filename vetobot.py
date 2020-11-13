@@ -1,7 +1,6 @@
 import os
 import random
 
-
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -25,7 +24,12 @@ bot = commands.Bot(
     intents=intents
 )
 
+BANNED = []
 VETO_RUNNING = False
+NUM_OF_PLAYERS = 0
+PLAYERS = []
+VETOED = 0
+
 MAPS = (
     'anubis',
     'cache',
@@ -37,13 +41,6 @@ MAPS = (
     'train',
     'vertigo',
 )
-NUM_OF_PLAYERS = 0
-PLAYERS = []
-VETOED = 0
-
-MESSAGE_HEADER = '```\n'
-MESSAGE_HEADER += add_list_to_message(MESSAGE_HEADER, MAPS)
-MESSAGE_HEADER += '\n\nVeto order:\n'
 
 
 class Player:
@@ -66,12 +63,14 @@ class Player:
 
 
 def end_veto():
+    global BANNED
     global PLAYERS
     global VETO_RUNNING
     global VETOED
     VETO_RUNNING = False
     VETOED = 0
     PLAYERS = []
+    BANNED = []
 
 
 @bot.event
@@ -92,9 +91,9 @@ async def vetostop(ctx):
 
 @bot.command(help='Veto on your turn')
 async def veto(ctx, vetomap):
+    global BANNED
     global PLAYERS
     global MAPS
-    global MESSAGE_HEADER
     global VETOED
     global VETO_RUNNING
 
@@ -104,21 +103,54 @@ async def veto(ctx, vetomap):
 
     vetoer = str(ctx.author).lower()
     vetoer, _ = vetoer.split('#')
-    print(vetoer)
-    print(PLAYERS[VETOED])
 
     if vetoer != PLAYERS[VETOED].name.lower():
         await ctx.send('incorrect vetoer')
+        return
+
+    if (
+        vetomap.lower().capitalize() in BANNED and
+        PLAYERS[VETOED].vetotype == 'pick'
+    ):
+        await ctx.send('map banned')
         return
 
     if vetoer == PLAYERS[VETOED].name.lower() and vetomap.lower() in MAPS:
         PLAYERS[VETOED].add_map(vetomap.lower())
         VETOED += 1
 
-    message = MESSAGE_HEADER
+    picked = []
+    BANNED = []
+    for p in PLAYERS:
+        if not p.mapveto:
+            continue
+        if p.vetotype == 'ban':
+            BANNED.append(p.mapveto)
+        elif p.vetotype == 'pick':
+            picked.append(p.mapveto)
+
+    banned_unique = list(set(BANNED))
+    picked_unique = list(set(picked))
+    bn = []
+    if len(BANNED) != 0:
+        for bu in list(banned_unique):
+            if BANNED.count(bu) % 2 != 0:
+                bn.append(bu)
+
+    pn = []
+    if len(picked) != 0:
+        for pu in list(picked_unique):
+            if picked.count(pu) % 2 != 0:
+                pn.append(pu)
+            else:
+                pn.append(f'~~{pu.capitalize()}~~')
+
+    message = ''
+    message = add_list_to_message(message, MAPS, bn)
+    message += '```\n\nVeto order:\n'
     message += construct_message_veto_list(PLAYERS)
-    message += construct_vetoed_maps(PLAYERS)
     message += '```'
+    message += construct_vetoed_maps(PLAYERS, bn, pn)
     await ctx.send(message)
     if VETOED == NUM_OF_PLAYERS:
         end_veto()
@@ -131,10 +163,13 @@ async def veto(ctx, vetomap):
 )
 async def start_veto(ctx, *args: discord.User):
     global MAPS
-    global MESSAGE_HEADER
     global NUM_OF_PLAYERS
     global PLAYER
     global VETO_RUNNING
+
+    message = ''
+    message = add_list_to_message(message, MAPS, [])
+    message += '```\n\nVeto order:\n'
 
     if VETO_RUNNING:
         await ctx.send(
@@ -142,7 +177,6 @@ async def start_veto(ctx, *args: discord.User):
         )
         return
 
-    message = MESSAGE_HEADER
     if len(args) == 0:
         await ctx.send('gimme players')
         return
