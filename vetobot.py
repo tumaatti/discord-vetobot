@@ -140,10 +140,6 @@ def start_best_of_veto(ctx, users: List[str], num_of_maps: int):
     #       ban,   ban,     pick,   pick, pick,     pick,  decider
     #       0      1        2       3     4         5      6
 
-    # TODO: modify the !veto command to use
-    # construct_message_best_of_veto_list when boN is in use. this can be
-    # done with the VETO_RUNNING - global variable
-
     global PLAYERS
     global MAPS
     global VETO_RUNNING
