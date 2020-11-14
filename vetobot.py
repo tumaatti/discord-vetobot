@@ -1,4 +1,5 @@
 import os
+import copy
 import random
 
 from typing import List
@@ -28,6 +29,7 @@ bot = commands.Bot(
 )
 
 BANNED = []
+PICKED = []
 
 # VETO_RUNNING
 # 0 - not running
@@ -65,6 +67,7 @@ class Player:
 
 def end_veto():
     global BANNED
+    global PICKED
     global PLAYERS
     global VETO_RUNNING
     global VETOED
@@ -72,6 +75,7 @@ def end_veto():
     VETOED = 0
     PLAYERS = []
     BANNED = []
+    PICKED = []
 
 
 def start_veto(ctx, users):
@@ -114,7 +118,7 @@ def start_veto(ctx, users):
             username, _ = username.split('#')
         PLAYERS.append(Player(username))
 
-    message += construct_message_veto_list(PLAYERS, 0)
+    message += construct_message_veto_list(PLAYERS)
     message += '```'
 
     return message
@@ -174,8 +178,11 @@ def start_best_of_veto(ctx, users: List[str], num_of_maps: int):
         starter, _ = starter.split('#')
         second, _ = second.split('#')
 
-    PLAYERS = [Player(starter), Player(second)]
-    PLAYERS = PLAYERS * 3  # both players veto 3 times
+    PLAYERS = [
+        Player(starter), Player(second),
+        Player(starter), Player(second),
+        Player(starter), Player(second),
+    ]
 
     message += construct_message_best_of_veto_list(
         PLAYERS,
@@ -203,31 +210,16 @@ async def vetostop(ctx):
     await ctx.send('veto aborted')
 
 
-@bot.command(help='Veto on your turn')
-async def veto(ctx, vetomap):
-    global BANNED
+def casual_veto(vetomap, vetoer):
     global PLAYERS
-    global MAPS
+    global BANNED
     global VETOED
-    global VETO_RUNNING
-
-    if not VETO_RUNNING:
-        await ctx.send('no active veto')
-        return
-
-    vetoer = str(ctx.author).lower()
-    vetoer, _ = vetoer.split('#')
-
-    if vetoer != PLAYERS[VETOED].name.lower():
-        await ctx.send('incorrect vetoer')
-        return
 
     if (
         vetomap.lower().capitalize() in BANNED and
         PLAYERS[VETOED].vetotype == 'pick'
     ):
-        await ctx.send('map banned')
-        return
+        return 'map banned'
 
     if vetoer == PLAYERS[VETOED].name.lower() and vetomap.lower() in MAPS:
         PLAYERS[VETOED].add_map(vetomap.lower())
@@ -265,6 +257,79 @@ async def veto(ctx, vetomap):
     message += construct_message_veto_list(PLAYERS)
     message += '```'
     message += construct_vetoed_maps(PLAYERS, bn, pn)
+
+    return message
+
+
+def best_of_veto(vetomap, vetoer):
+    global BANNED
+    global MAPS
+    global PICKED
+    global PLAYERS
+    global VETOED
+
+    if (
+        vetomap.lower().capitalize() in BANNED or
+        vetomap.lower().capitalize() in PICKED
+    ):
+        return 'map already selected'
+
+    if vetoer == PLAYERS[VETOED].name.lower() and vetomap.lower() in MAPS:
+        PLAYERS[VETOED].add_map(vetomap.lower())
+        VETOED += 1
+
+    BANNED = []
+    PICKED = []
+    for p in PLAYERS:
+        if not p.mapveto:
+            continue
+        if p.vetotype == 'ban':
+            BANNED.append(p.mapveto)
+        elif p.vetotype == 'pick':
+            PICKED.append(p.mapveto)
+
+    vetos = copy.copy(BANNED)
+    vetos.extend(PICKED)
+    if len(vetos) == 6:
+        tmp = copy.copy(MAPS)
+        for i in vetos:
+            if i.lower() in tmp:
+                tmp.remove(i.lower())
+        PICKED.append(tmp[0])
+
+    message = ''
+    message += add_list_to_message(message, MAPS, vetos)
+    message += '```\n\nVeto order:\n'
+    message += construct_message_best_of_veto_list(PLAYERS, MAPS, VETO_RUNNING)
+    message += '```'
+    message += construct_vetoed_maps(PLAYERS, BANNED, PICKED)
+
+    return message
+
+
+@bot.command(help='Veto on your turn')
+async def veto(ctx, vetomap):
+    global BANNED
+    global PLAYERS
+    global MAPS
+    global VETOED
+    global VETO_RUNNING
+
+    if not VETO_RUNNING:
+        await ctx.send('no active veto')
+        return
+
+    vetoer = str(ctx.author).lower()
+    vetoer, _ = vetoer.split('#')
+
+    if vetoer != PLAYERS[VETOED].name.lower():
+        await ctx.send('incorrect vetoer')
+        return
+
+    if VETO_RUNNING == 10:
+        message = casual_veto(vetomap, vetoer)
+    else:
+        message = best_of_veto(vetomap, vetoer)
     await ctx.send(message)
     if VETOED == len(PLAYERS):
         end_veto()

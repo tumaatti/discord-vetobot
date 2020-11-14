@@ -46,10 +46,6 @@ def construct_message_best_of_veto_list(PLAYERS, MAPS, num_of_maps):
     # [6]    BO1: dec, BO3: dec,  BO5: dec
 
     message = ''
-    last_map = ''
-    if len(MAPS) == 1:
-        last_map = MAPS[0]
-
     tmp = []
     for p in PLAYERS[:1]:
         tmp.append(len(str(p.name)))
@@ -68,11 +64,6 @@ def construct_message_best_of_veto_list(PLAYERS, MAPS, num_of_maps):
             )
             PLAYERS[i].set_vetotype('ban')
             # MAPS.remove(PLAYERS[i].mapveto.lower())
-
-        elif i == 6:
-            message += (
-                f'Final map: {last_map}'
-            )
 
         else:
             message += (
