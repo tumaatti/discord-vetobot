@@ -117,6 +117,7 @@ def start_veto(ctx, users):
         if '#' in username:
             username, _ = username.split('#')
         PLAYERS.append(Player(username))
+        num_of_players -= 1
 
     message += construct_message_veto_list(PLAYERS)
     message += '```'
