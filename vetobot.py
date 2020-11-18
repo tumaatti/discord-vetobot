@@ -1,23 +1,21 @@
-import os
 import copy
+import os
 import random
-
 from typing import List
 
-import discord
 import discord.utils
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from utils.message_utils import construct_vetoed_maps
-from utils.message_utils import construct_message_veto_list
-from utils.message_utils import construct_message_best_of_veto_list
 from utils.message_utils import add_list_to_message
+from utils.message_utils import construct_message_best_of_veto_list
+from utils.message_utils import construct_message_veto_list
+from utils.message_utils import construct_vetoed_maps
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
-description = "A bot"
+description = 'A bot'
 
 intents = discord.Intents.default()
 intents.members = True
@@ -25,7 +23,7 @@ intents.members = True
 bot = commands.Bot(
     command_prefix='!',
     description=description,
-    intents=intents
+    intents=intents,
 )
 
 BANNED = []
@@ -344,7 +342,7 @@ async def vetostart(ctx, *args: discord.User):
 
 
 @bot.command(
-    help='<voice channelname> Start veto with users in voice channel'
+    help='<voice channelname> Start veto with users in voice channel',
 )
 async def vetostartv(ctx, channel_name):
     voice_channel = discord.utils.get(

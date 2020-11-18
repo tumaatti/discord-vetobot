@@ -58,18 +58,18 @@ def construct_message_best_of_veto_list(PLAYERS, MAPS, num_of_maps):
             (i in [4, 5] and num_of_maps in [1, 3])
         ):
             message += (
-                f"Ban:  {PLAYERS[i].name} "
+                f'Ban:  {PLAYERS[i].name} '
                 f"{(max_p - len(PLAYERS[i].name)) * ' ' } "
-                f"{PLAYERS[i].mapveto}\n"
+                f'{PLAYERS[i].mapveto}\n'
             )
             PLAYERS[i].set_vetotype('ban')
             # MAPS.remove(PLAYERS[i].mapveto.lower())
 
         else:
             message += (
-                f"Pick: {PLAYERS[i].name} "
+                f'Pick: {PLAYERS[i].name} '
                 f"{(max_p - len(PLAYERS[i].name)) * ' ' } "
-                f"{PLAYERS[i].mapveto}\n"
+                f'{PLAYERS[i].mapveto}\n'
             )
             PLAYERS[i].set_vetotype('pick')
             # MAPS.remove(PLAYERS[i].mapveto.lower())
