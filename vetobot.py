@@ -15,7 +15,7 @@ from utils.message_utils import construct_vetoed_maps
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
-description = 'A bot'
+description = 'A bot https://github.com/tumaatti/discord-vetobot'
 
 intents = discord.Intents.default()
 intents.members = True
