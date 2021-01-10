@@ -26,10 +26,6 @@ bot = commands.Bot(
     intents=intents,
 )
 
-BANNED = []
-PICKED = []
-
-RUNNING_VETOS = []
 
 # VETO_RUNNING CODES
 # 0 - not running
@@ -37,35 +33,6 @@ RUNNING_VETOS = []
 # 3 - BO3 veto
 # 5 - BO5 veto
 # 10 - normal casual veto
-
-
-class Veto:
-    def __init__(
-        self,
-        channel: str,
-        server: str,
-        veto_running: int,
-        maps: List[str],
-        players: List[object],
-    ):
-        self.maps = maps
-        self.channel = channel
-        self.server = server
-        self.veto_running = veto_running
-        self.players = players
-        self.vetoed = 0
-        self.banned_maps = []
-        self.picked_maps = []
-
-    def __str__(self):
-        return (
-            f'{self.channel} {self.server} '
-            f'veto running: {self.veto_running} '
-            f'vetoed: {self.vetoed}'
-        )
-
-    def add_veto(self):
-        self.vetoed += 1
 
 
 class Player:
@@ -84,17 +51,46 @@ class Player:
         self.vetotype = vetotype
 
 
-def end_veto():
-    global BANNED
-    global PICKED
-    global PLAYERS
-    global VETO_RUNNING
-    global VETOED
-    VETO_RUNNING = 0
-    VETOED = 0
-    PLAYERS = []
-    BANNED = []
-    PICKED = []
+class Veto:
+    def __init__(
+        self,
+        channel: str,
+        server: str,
+        veto_running: int,
+        maps: List[str],
+        players: List[Player],
+    ):
+        self.maps = maps
+        self.channel = channel
+        self.server = server
+        self.veto_running = veto_running
+        self.players = players
+        self.vetoed = 0
+        self.banned_maps: List[str] = []
+        self.picked_maps: List[str] = []
+
+    def __str__(self):
+        return (
+            f'{self.channel} {self.server} '
+            f'veto running: {self.veto_running} '
+            f'vetoed: {self.vetoed}'
+        )
+
+    def add_veto(self):
+        self.vetoed += 1
+
+
+RUNNING_VETOS: List[Veto] = []
+BANNED: List[str]
+PICKED: List[str]
+
+
+def end_veto(ctx):
+    global RUNNING_VETOS
+
+    for i, r in enumerate(RUNNING_VETOS):
+        if r.channel == ctx.channel.name and r.server == ctx.guild.name:
+            RUNNING_VETOS.pop(i)
 
 
 def start_veto(ctx, users):
@@ -226,7 +222,7 @@ async def ping(ctx):
 
 @bot.command(help='Abort current veto')
 async def vetostop(ctx):
-    end_veto()
+    end_veto(ctx)
     await ctx.send('veto aborted')
 
 
@@ -337,9 +333,10 @@ async def veto(ctx, vetomap):
     for i in RUNNING_VETOS:
         if i.channel == ctx.channel.name and i.server == ctx.guild.name:
             veto = i
-        else:
-            await ctx.send('no active veto on this channel')
-            return
+            break
+    else:
+        await ctx.send('no active veto on this channel')
+        return
 
     vetoer = str(ctx.author).lower()
     vetoer, _ = vetoer.split('#')
@@ -354,7 +351,7 @@ async def veto(ctx, vetomap):
         message = best_of_veto(veto, vetomap, vetoer)
     await ctx.send(message)
     if veto.vetoed == len(veto.players):
-        end_veto()
+        end_veto(ctx)
 
 
 @bot.command(
