@@ -63,7 +63,6 @@ def construct_message_best_of_veto_list(veto):
                 f'{veto.players[i].mapveto}\n'
             )
             veto.players[i].set_vetotype('ban')
-            # MAPS.remove(PLAYERS[i].mapveto.lower())
 
         else:
             message += (
@@ -72,7 +71,6 @@ def construct_message_best_of_veto_list(veto):
                 f'{veto.players[i].mapveto}\n'
             )
             veto.players[i].set_vetotype('pick')
-            # MAPS.remove(PLAYERS[i].mapveto.lower())
 
     return message
 

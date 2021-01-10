@@ -1,10 +1,3 @@
-# aika paljon kaikennäköistä hätää tässä taitaa olla
-# bo3:een tehty periaatteessa toi refactor, mutta ei toimi todellakaan,
-# niin kuin pitäisi. jossain vaiheessa ainakin list out of range ja printtaa
-# noita mappeja tonne listaan ihan miten sattuu, että se hakee niitä jostain
-# ihan väärästä paikasta ja myös varmaan laittaa niitä aivan väärään paikkaan
-
-
 import copy
 import os
 import random
@@ -64,13 +57,18 @@ class Veto:
         self.banned_maps = []
         self.picked_maps = []
 
+    def __str__(self):
+        return (
+            f'{self.channel} {self.server} '
+            f'veto running: {self.veto_running} '
+            f'vetoed: {self.vetoed}'
+        )
+
     def add_veto(self):
         self.vetoed += 1
 
 
 class Player:
-    global MAPS
-
     def __init__(self, name: str):
         self.name = name
         self.mapveto = ''
@@ -302,6 +300,8 @@ def best_of_veto(veto, vetomap, vetoer):
         else:
             return 'map not available'
 
+    veto.banned_maps = []
+    veto.picked_maps = []
     for p in veto.players:
         if not p.mapveto:
             continue
