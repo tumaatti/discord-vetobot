@@ -44,6 +44,25 @@ VETOED = 0
 MAPS = []
 
 
+class Veto:
+    def __init__(
+        self,
+        channel: str,
+        server: str,
+        veto_running: int,
+        maps: List[str],
+        players: List[object],
+    ):
+        self.maps = maps
+        self.channel = channel
+        self.server = server
+        self.veto_running = veto_running
+        self.vetoed = 0
+
+    def add_veto(self, map, player):
+        self.vetoed += 0
+
+
 class Player:
     global MAPS
 
