@@ -38,7 +38,7 @@ def construct_message_veto_list(PLAYERS):
     return message
 
 
-def construct_message_best_of_veto_list(PLAYERS, MAPS, num_of_maps):
+def construct_message_best_of_veto_list(veto):
     # MAP VETO memos for BoN
     # [0, 1] always ban
     # [2, 3] BO1: ban, BO3: Pick, BO5: Pick
@@ -47,46 +47,46 @@ def construct_message_best_of_veto_list(PLAYERS, MAPS, num_of_maps):
 
     message = ''
     tmp = []
-    for p in PLAYERS[:1]:
+    for p in veto.players[:1]:
         tmp.append(len(str(p.name)))
 
     max_p = max(tmp)
     for i in range(0, 6):
         if (
             (i in [0, 1]) or
-            (i in [2, 3] and num_of_maps == 1) or
-            (i in [4, 5] and num_of_maps in [1, 3])
+            (i in [2, 3] and veto.veto_running == 1) or
+            (i in [4, 5] and veto.veto_running in [1, 3])
         ):
             message += (
-                f'Ban:  {PLAYERS[i].name} '
-                f"{(max_p - len(PLAYERS[i].name)) * ' ' } "
-                f'{PLAYERS[i].mapveto}\n'
+                f'Ban:  {veto.players[i].name} '
+                f"{(max_p - len(veto.players[i].name)) * ' ' } "
+                f'{veto.players[i].mapveto}\n'
             )
-            PLAYERS[i].set_vetotype('ban')
+            veto.players[i].set_vetotype('ban')
             # MAPS.remove(PLAYERS[i].mapveto.lower())
 
         else:
             message += (
-                f'Pick: {PLAYERS[i].name} '
-                f"{(max_p - len(PLAYERS[i].name)) * ' ' } "
-                f'{PLAYERS[i].mapveto}\n'
+                f'Pick: {veto.players[i].name} '
+                f"{(max_p - len(veto.players[i].name)) * ' ' } "
+                f'{veto.players[i].mapveto}\n'
             )
-            PLAYERS[i].set_vetotype('pick')
+            veto.players[i].set_vetotype('pick')
             # MAPS.remove(PLAYERS[i].mapveto.lower())
 
     return message
 
 
-def construct_vetoed_maps(PLAYERS, bn, pn):
+def construct_vetoed_maps(veto):
     message = ''
-    if len(bn) == 0:
+    if len(veto.banned_maps) == 0:
         message += '\nBanned: --'
     else:
-        message += add_list_to_message('\nBanned: ', bn, [])
+        message += add_list_to_message('\nBanned: ', veto.banned_maps, [])
 
-    if len(pn) == 0:
+    if len(veto.picked_maps) == 0:
         message += '\nPicked: --'
     else:
-        message += add_list_to_message('\nPicked: ', pn, [])
+        message += add_list_to_message('\nPicked: ', veto.picked_maps, [])
 
     return message
