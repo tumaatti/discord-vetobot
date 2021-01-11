@@ -76,7 +76,25 @@ class Veto:
         )
 
     def add_veto(self):
-        self.vetoed += 1
+        picked = []
+        picked_unique = []
+
+        banned = []
+        banned_unique = []
+
+        for p in self.players:
+            if not p.mapveto:
+                continue
+            if p.vetotype == 'ban':
+                if p.mapveto not in banned and self.veto_running == 10:
+                    banned_unique.append(p.mapveto)
+                banned.append(p.mapveto)
+            elif p.vetotype == 'pick':
+                if p.mapveto not in picked and self.veto_running == 10:
+                    picked_unique.append(p.mapveto)
+                picked.append(p.mapveto)
+
+        return banned, picked, banned_unique, picked_unique
 
 
 RUNNING_VETOS: List[Veto] = []
@@ -248,23 +266,9 @@ def casual_veto(veto, vetomap, vetoer):
         vetomap.lower() in veto.maps
     ):
         veto.players[veto.vetoed].add_map(vetomap.lower())
-        veto.add_veto()
+        veto.vetoed += 1
 
-    picked = []
-    picked_unique = []
-    banned = []
-    banned_unique = []
-    for p in veto.players:
-        if not p.mapveto:
-            continue
-        if p.vetotype == 'ban':
-            if p.mapveto not in banned:
-                banned_unique.append(p.mapveto)
-            banned.append(p.mapveto)
-        elif p.vetotype == 'pick':
-            if p.mapveto not in picked:
-                picked_unique.append(p.mapveto)
-            picked.append(p.mapveto)
+    banned, picked, banned_unique, picked_unique = veto.add_veto()
 
     veto.banned_maps = []
     if len(banned) != 0:
@@ -305,21 +309,13 @@ def best_of_veto(veto, vetomap, vetoer):
     ):
         if vetomap in veto.maps:
             veto.players[veto.vetoed].add_map(vetomap.lower())
-            veto.add_veto()
+            veto.vetoed += 1
         else:
             return 'map not available'
 
-    veto.banned_maps = []
-    veto.picked_maps = []
-    for p in veto.players:
-        if not p.mapveto:
-            continue
-        if p.vetotype == 'ban':
-            veto.banned_maps.append(p.mapveto)
-        elif p.vetotype == 'pick':
-            veto.picked_maps.append(p.mapveto)
+    veto.banned_maps, veto.picked_maps, _, _ = veto.add_veto()
 
-    # on the last veto, add the map unbanned/unpicked map to picked list
+    # on the last veto, add the last unbanned/unpicked map to picked list
     vetos = copy.copy(veto.banned_maps)
     vetos.extend(veto.picked_maps)
     if len(vetos) == 6:
