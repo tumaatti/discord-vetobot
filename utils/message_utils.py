@@ -14,16 +14,16 @@ def add_list_to_message(base: str, maps: List, bn: List):
     return base
 
 
-def construct_message_veto_list(PLAYERS):
+def construct_message_veto_list(veto):
     message = ''
     i = 0
     tmp = []
-    for p in PLAYERS:
+    for p in veto.players:
         tmp.append(len(str(p.name)))
 
     max_p = max(tmp)
-    for p in PLAYERS:
-        if i < len(PLAYERS) - 3:
+    for p in veto.players:
+        if i < len(veto.players) - 3:
             message += (
                 f"Ban:  {p.name} {(max_p - len(p.name)) * ' ' } {p.mapveto}\n"
             )
