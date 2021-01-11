@@ -251,33 +251,37 @@ def casual_veto(veto, vetomap, vetoer):
         veto.add_veto()
 
     picked = []
-    veto.banned_maps = []
+    picked_unique = []
+    banned = []
+    banned_unique = []
     for p in veto.players:
         if not p.mapveto:
             continue
         if p.vetotype == 'ban':
-            veto.banned_maps.append(p.mapveto)
+            if p.mapveto not in banned:
+                banned_unique.append(p.mapveto)
+            banned.append(p.mapveto)
         elif p.vetotype == 'pick':
+            if p.mapveto not in picked:
+                picked_unique.append(p.mapveto)
             picked.append(p.mapveto)
 
-    banned_unique = list(set(veto.banned_maps))
-    picked_unique = list(set(picked))
-    bn = []
-    if len(veto.banned_maps) != 0:
-        for bu in list(banned_unique):
-            if veto.banned_maps.count(bu) % 2 != 0:
-                bn.append(bu)
+    veto.banned_maps = []
+    if len(banned) != 0:
+        for bu in banned_unique:
+            if banned.count(bu) % 2 != 0:
+                veto.banned_maps.append(bu)
 
     veto.picked_maps = []
     if len(picked) != 0:
-        for pu in list(picked_unique):
+        for pu in picked_unique:
             if picked.count(pu) % 2 != 0:
                 veto.picked_maps.append(pu)
             else:
                 veto.picked_maps.append(f'~~{pu.capitalize()}~~')
 
     message = ''
-    message = add_list_to_message(message, veto.maps, bn)
+    message = add_list_to_message(message, veto.maps, veto.banned_maps)
     message += '```\n\nVeto order:\n'
     message += construct_message_veto_list(veto)
     message += '```'
