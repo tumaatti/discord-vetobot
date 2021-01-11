@@ -26,27 +26,15 @@ bot = commands.Bot(
     intents=intents,
 )
 
-BANNED = []
-PICKED = []
-
-# VETO_RUNNING
+# VETO_RUNNING CODES
 # 0 - not running
 # 1 - BO1 veto
 # 3 - BO3 veto
 # 5 - BO5 veto
 # 10 - normal casual veto
 
-VETO_RUNNING = 0
-
-PLAYERS = []
-VETOED = 0
-
-MAPS = []
-
 
 class Player:
-    global MAPS
-
     def __init__(self, name: str):
         self.name = name
         self.mapveto = ''
@@ -56,33 +44,59 @@ class Player:
         return f'{self.name} {self.mapveto}'
 
     def add_map(self, mapveto: str):
-        if mapveto in MAPS:
-            self.mapveto = mapveto.capitalize()
+        self.mapveto = mapveto.capitalize()
 
     def set_vetotype(self, vetotype: str):
         self.vetotype = vetotype
 
 
-def end_veto():
-    global BANNED
-    global PICKED
-    global PLAYERS
-    global VETO_RUNNING
-    global VETOED
-    VETO_RUNNING = 0
-    VETOED = 0
-    PLAYERS = []
-    BANNED = []
-    PICKED = []
+class Veto:
+    def __init__(
+        self,
+        channel: str,
+        server: str,
+        veto_running: int,
+        maps: List[str],
+        players: List[Player],
+    ):
+        self.maps = maps
+        self.channel = channel
+        self.server = server
+        self.veto_running = veto_running
+        self.players = players
+        self.vetoed = 0
+        self.banned_maps: List[str] = []
+        self.picked_maps: List[str] = []
+
+    def __str__(self):
+        return (
+            f'{self.channel} {self.server} '
+            f'veto running: {self.veto_running} '
+            f'vetoed: {self.vetoed}'
+        )
+
+    def add_veto(self):
+        self.vetoed += 1
+
+
+RUNNING_VETOS: List[Veto] = []
+BANNED: List[str]
+PICKED: List[str]
+
+
+def end_veto(ctx):
+    global RUNNING_VETOS
+
+    for i, r in enumerate(RUNNING_VETOS):
+        if r.channel == ctx.channel.name and r.server == ctx.guild.name:
+            RUNNING_VETOS.pop(i)
 
 
 def start_veto(ctx, users):
-    global MAPS
-    global PLAYER
-    global VETO_RUNNING
+    global RUNNING_VETOS
 
     num_of_players = len(users)
-    MAPS = [
+    maps = [
         'anubis',
         'cache',
         'dust2',
@@ -94,8 +108,9 @@ def start_veto(ctx, users):
         'vertigo',
     ]
 
-    if VETO_RUNNING:
-        return 'veto already running! use !veto <map_name> to veto!'
+    for i in RUNNING_VETOS:
+        if i.channel == ctx.channel.name and i.server == ctx.guild.name:
+            return 'veto already running!'
 
     if num_of_players == 0:
         return 'gimme players'
@@ -104,20 +119,30 @@ def start_veto(ctx, users):
         return 'too many players'
 
     message = ''
-    message = add_list_to_message(message, MAPS, [])
+    message = add_list_to_message(message, maps, [])
     message += '```\n\nVeto order:\n'
 
-    VETO_RUNNING = 10
+    players: List[Player] = []
     for i in range(num_of_players):
         rnd = random.randint(0, num_of_players - 1)
         # original username: tumaatti#1111
         username = str(users.pop(rnd))
         if '#' in username:
             username, _ = username.split('#')
-        PLAYERS.append(Player(username))
+        players.append(Player(username))
         num_of_players -= 1
 
-    message += construct_message_veto_list(PLAYERS)
+    veto = Veto(
+        ctx.channel.name,
+        ctx.guild.name,
+        10,
+        maps,
+        players,
+    )
+
+    RUNNING_VETOS.append(veto)
+
+    message += construct_message_veto_list(veto)
     message += '```'
 
     return message
@@ -139,11 +164,9 @@ def start_best_of_veto(ctx, users: List[str], num_of_maps: int):
     #       ban,   ban,     pick,   pick, pick,     pick,  decider
     #       0      1        2       3     4         5      6
 
-    global PLAYERS
-    global MAPS
-    global VETO_RUNNING
+    global RUNNING_VETOS
 
-    MAPS = [
+    maps = [
         'dust2',
         'inferno',
         'mirage',
@@ -155,17 +178,17 @@ def start_best_of_veto(ctx, users: List[str], num_of_maps: int):
 
     num_of_players = len(users)
 
-    if VETO_RUNNING:
-        return 'veto already running'
+    for i in RUNNING_VETOS:
+        if i.channel == ctx.channel.name and i.server == ctx.guild.name:
+            return 'veto already running on this channel'
 
     if num_of_players != 2:
         return 'need 2 players for veto!'
 
     message = ''
-    message = add_list_to_message(message, MAPS, [])
+    message = add_list_to_message(message, maps, [])
     message += '```\n\nVeto order:\n'
 
-    VETO_RUNNING = num_of_maps
     rnd = random.randint(0, num_of_players - 1)
     starter = str(users.pop(rnd))
     second = str(users[0])
@@ -173,17 +196,23 @@ def start_best_of_veto(ctx, users: List[str], num_of_maps: int):
         starter, _ = starter.split('#')
         second, _ = second.split('#')
 
-    PLAYERS = [
+    players = [
         Player(starter), Player(second),
         Player(starter), Player(second),
         Player(starter), Player(second),
     ]
 
-    message += construct_message_best_of_veto_list(
-        PLAYERS,
-        MAPS,
+    veto = Veto(
+        ctx.channel.name,
+        ctx.guild.name,
         num_of_maps,
+        maps,
+        players,
     )
+
+    RUNNING_VETOS.append(veto)
+
+    message += construct_message_best_of_veto_list(veto)
     message += '```'
 
     return message
@@ -201,133 +230,141 @@ async def ping(ctx):
 
 @bot.command(help='Abort current veto')
 async def vetostop(ctx):
-    end_veto()
+    end_veto(ctx)
     await ctx.send('veto aborted')
 
 
-def casual_veto(vetomap, vetoer):
-    global PLAYERS
-    global BANNED
-    global VETOED
+def casual_veto(veto, vetomap, vetoer):
+    global RUNNING_VETOS
 
     if (
-        vetomap.lower().capitalize() in BANNED and
-        PLAYERS[VETOED].vetotype == 'pick'
+        vetomap.lower().capitalize() in veto.banned_maps and
+        veto.players[veto.vetoed].vetotype == 'pick'
     ):
         return 'map banned'
 
-    if vetoer == PLAYERS[VETOED].name.lower() and vetomap.lower() in MAPS:
-        PLAYERS[VETOED].add_map(vetomap.lower())
-        VETOED += 1
+    if (
+        vetoer == veto.players[veto.vetoed].name.lower() and
+        vetomap.lower() in veto.maps
+    ):
+        veto.players[veto.vetoed].add_map(vetomap.lower())
+        veto.add_veto()
 
     picked = []
-    BANNED = []
-    for p in PLAYERS:
+    picked_unique = []
+    banned = []
+    banned_unique = []
+    for p in veto.players:
         if not p.mapveto:
             continue
         if p.vetotype == 'ban':
-            BANNED.append(p.mapveto)
+            if p.mapveto not in banned:
+                banned_unique.append(p.mapveto)
+            banned.append(p.mapveto)
         elif p.vetotype == 'pick':
+            if p.mapveto not in picked:
+                picked_unique.append(p.mapveto)
             picked.append(p.mapveto)
 
-    banned_unique = list(set(BANNED))
-    picked_unique = list(set(picked))
-    bn = []
-    if len(BANNED) != 0:
-        for bu in list(banned_unique):
-            if BANNED.count(bu) % 2 != 0:
-                bn.append(bu)
+    veto.banned_maps = []
+    if len(banned) != 0:
+        for bu in banned_unique:
+            if banned.count(bu) % 2 != 0:
+                veto.banned_maps.append(bu)
 
-    pn = []
+    veto.picked_maps = []
     if len(picked) != 0:
-        for pu in list(picked_unique):
+        for pu in picked_unique:
             if picked.count(pu) % 2 != 0:
-                pn.append(pu)
+                veto.picked_maps.append(pu)
             else:
-                pn.append(f'~~{pu.capitalize()}~~')
+                veto.picked_maps.append(f'~~{pu.capitalize()}~~')
 
     message = ''
-    message = add_list_to_message(message, MAPS, bn)
+    message = add_list_to_message(message, veto.maps, veto.banned_maps)
     message += '```\n\nVeto order:\n'
-    message += construct_message_veto_list(PLAYERS)
+    message += construct_message_veto_list(veto)
     message += '```'
-    message += construct_vetoed_maps(PLAYERS, bn, pn)
+    message += construct_vetoed_maps(veto)
 
     return message
 
 
-def best_of_veto(vetomap, vetoer):
-    global BANNED
-    global MAPS
-    global PICKED
-    global PLAYERS
-    global VETOED
+def best_of_veto(veto, vetomap, vetoer):
+    global RUNNING_VETOS
 
     if (
-        vetomap.lower().capitalize() in BANNED or
-        vetomap.lower().capitalize() in PICKED
+        vetomap.lower().capitalize() in veto.banned_maps or
+        vetomap.lower().capitalize() in veto.picked_maps
     ):
         return 'map already selected'
 
-    if vetoer == PLAYERS[VETOED].name.lower() and vetomap.lower() in MAPS:
-        PLAYERS[VETOED].add_map(vetomap.lower())
-        VETOED += 1
+    if (
+        vetoer == veto.players[veto.vetoed].name.lower() and
+        vetomap.lower() in veto.maps
+    ):
+        if vetomap in veto.maps:
+            veto.players[veto.vetoed].add_map(vetomap.lower())
+            veto.add_veto()
+        else:
+            return 'map not available'
 
-    BANNED = []
-    PICKED = []
-    for p in PLAYERS:
+    veto.banned_maps = []
+    veto.picked_maps = []
+    for p in veto.players:
         if not p.mapveto:
             continue
         if p.vetotype == 'ban':
-            BANNED.append(p.mapveto)
+            veto.banned_maps.append(p.mapveto)
         elif p.vetotype == 'pick':
-            PICKED.append(p.mapveto)
+            veto.picked_maps.append(p.mapveto)
 
-    vetos = copy.copy(BANNED)
-    vetos.extend(PICKED)
+    # on the last veto, add the map unbanned/unpicked map to picked list
+    vetos = copy.copy(veto.banned_maps)
+    vetos.extend(veto.picked_maps)
     if len(vetos) == 6:
-        tmp = copy.copy(MAPS)
+        tmp = copy.copy(veto.maps)
         for i in vetos:
             if i.lower() in tmp:
                 tmp.remove(i.lower())
-        PICKED.append(tmp[0])
+        veto.picked_maps.append(tmp[0])
 
     message = ''
-    message += add_list_to_message(message, MAPS, vetos)
+    message += add_list_to_message(message, veto.maps, vetos)
     message += '```\n\nVeto order:\n'
-    message += construct_message_best_of_veto_list(PLAYERS, MAPS, VETO_RUNNING)
+    message += construct_message_best_of_veto_list(veto)
     message += '```'
-    message += construct_vetoed_maps(PLAYERS, BANNED, PICKED)
+    message += construct_vetoed_maps(veto)
 
     return message
 
 
 @bot.command(help='Veto on your turn')
 async def veto(ctx, vetomap):
-    global BANNED
-    global PLAYERS
-    global MAPS
-    global VETOED
-    global VETO_RUNNING
+    global RUNNING_VETOS
 
-    if not VETO_RUNNING:
-        await ctx.send('no active veto')
+    for i in RUNNING_VETOS:
+        if i.channel == ctx.channel.name and i.server == ctx.guild.name:
+            veto = i
+            break
+    else:
+        await ctx.send('no active veto on this channel')
         return
 
     vetoer = str(ctx.author).lower()
     vetoer, _ = vetoer.split('#')
 
-    if vetoer != PLAYERS[VETOED].name.lower():
+    if vetoer != veto.players[veto.vetoed].name.lower():
         await ctx.send('incorrect vetoer')
         return
 
-    if VETO_RUNNING == 10:
-        message = casual_veto(vetomap, vetoer)
+    if veto.veto_running == 10:
+        message = casual_veto(veto, vetomap, vetoer)
     else:
-        message = best_of_veto(vetomap, vetoer)
+        message = best_of_veto(veto, vetomap, vetoer)
     await ctx.send(message)
-    if VETOED == len(PLAYERS):
-        end_veto()
+    if veto.vetoed == len(veto.players):
+        end_veto(ctx)
 
 
 @bot.command(
