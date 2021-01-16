@@ -1,7 +1,9 @@
 import copy
 import os
 import random
+
 from typing import List
+from typing import Tuple
 
 import discord.utils
 from discord.ext import commands
@@ -75,12 +77,12 @@ class Veto:
             f'vetoed: {self.vetoed}'
         )
 
-    def add_veto(self):
-        picked = []
-        picked_unique = []
+    def add_veto(self) -> Tuple[List[str], List[str], List[str], List[str]]:
+        picked: List[str] = []
+        picked_unique: List[str] = []
 
-        banned = []
-        banned_unique = []
+        banned: List[str] = []
+        banned_unique: List[str] = []
 
         for p in self.players:
             if not p.mapveto:
@@ -105,7 +107,7 @@ def end_veto(ctx):
             RUNNING_VETOS.pop(i)
 
 
-def start_veto(ctx, users):
+def start_veto(ctx, users: List[str]) -> str:
     global RUNNING_VETOS
 
     num_of_players = len(users)
@@ -136,7 +138,7 @@ def start_veto(ctx, users):
     message += '```\n\nVeto order:\n'
 
     players: List[Player] = []
-    for i in range(num_of_players):
+    while num_of_players != 0:
         rnd = random.randint(0, num_of_players - 1)
         # original username: tumaatti#1111
         username = str(users.pop(rnd))
@@ -161,7 +163,7 @@ def start_veto(ctx, users):
     return message
 
 
-def start_best_of_veto(ctx, users: List[str], num_of_maps: int):
+def start_best_of_veto(ctx, users: List[str], num_of_maps: int) -> str:
     # system for BO1
     # maps: dust2, inferno, mirage, nuke, overpass, train, vertigo
     #       ban,   ban,     ban,    ban , ban,      ban,   decider
@@ -232,7 +234,7 @@ def start_best_of_veto(ctx, users: List[str], num_of_maps: int):
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
     print('Logged in as', bot.user)
 
 
@@ -247,7 +249,7 @@ async def vetostop(ctx):
     await ctx.send('veto aborted')
 
 
-def casual_veto(veto, vetomap, vetoer):
+def casual_veto(veto: Veto, vetomap: str, vetoer: str) -> str:
     global RUNNING_VETOS
 
     if (
@@ -289,7 +291,7 @@ def casual_veto(veto, vetomap, vetoer):
     return message
 
 
-def best_of_veto(veto, vetomap, vetoer):
+def best_of_veto(veto: Veto, vetomap: str, vetoer: str) -> str:
     global RUNNING_VETOS
 
     if (
@@ -331,7 +333,7 @@ def best_of_veto(veto, vetomap, vetoer):
 
 
 @bot.command(help='Veto on your turn')
-async def veto(ctx, vetomap):
+async def veto(ctx, vetomap: str) -> None:
     global RUNNING_VETOS
 
     for i in RUNNING_VETOS:

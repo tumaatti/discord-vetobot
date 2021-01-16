@@ -1,7 +1,7 @@
 from typing import List
 
 
-def add_list_to_message(base: str, maps: List, bn: List):
+def add_list_to_message(base: str, maps: List, bn: List) -> str:
     for i, m in enumerate(maps):
         banned = m.capitalize()
         if m.capitalize() in bn:
@@ -14,7 +14,7 @@ def add_list_to_message(base: str, maps: List, bn: List):
     return base
 
 
-def construct_message_veto_list(veto):
+def construct_message_veto_list(veto) -> str:
     message = ''
     i = 0
     tmp = []
@@ -38,7 +38,7 @@ def construct_message_veto_list(veto):
     return message
 
 
-def construct_message_best_of_veto_list(veto):
+def construct_message_best_of_veto_list(veto) -> str:
     # MAP VETO memos for BoN
     # [0, 1] always ban
     # [2, 3] BO1: ban, BO3: Pick, BO5: Pick
@@ -75,7 +75,7 @@ def construct_message_best_of_veto_list(veto):
     return message
 
 
-def construct_vetoed_maps(veto):
+def construct_vetoed_maps(veto) -> str:
     message = ''
     if len(veto.banned_maps) == 0:
         message += '\nBanned: --'
