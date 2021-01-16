@@ -97,11 +97,6 @@ class Veto:
         return banned, picked, banned_unique, picked_unique
 
 
-RUNNING_VETOS: List[Veto] = []
-BANNED: List[str]
-PICKED: List[str]
-
-
 def end_veto(ctx):
     global RUNNING_VETOS
 
@@ -396,5 +391,7 @@ async def bo3(ctx, *args: discord.User):
     message = start_best_of_veto(ctx, users, 3)
     await ctx.send(message)
 
+
+RUNNING_VETOS: List[Veto] = []
 
 bot.run(TOKEN)
