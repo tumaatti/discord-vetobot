@@ -1,7 +1,6 @@
 import copy
 import os
 import random
-
 from typing import List
 from typing import Tuple
 
@@ -107,7 +106,7 @@ def end_veto(ctx):
             RUNNING_VETOS.pop(i)
 
 
-def start_veto(ctx, users: List[str]) -> str:
+def start_veto(ctx, users: List[discord.User]) -> str:
     global RUNNING_VETOS
 
     num_of_players = len(users)
@@ -137,15 +136,10 @@ def start_veto(ctx, users: List[str]) -> str:
     message = add_list_to_message(message, maps, [])
     message += '```\n\nVeto order:\n'
 
+    random.shuffle(users)
     players: List[Player] = []
-    while num_of_players != 0:
-        rnd = random.randint(0, num_of_players - 1)
-        # original username: tumaatti#1111
-        username = str(users.pop(rnd))
-        if '#' in username:
-            username, _ = username.split('#')
-        players.append(Player(username))
-        num_of_players -= 1
+    for u in users:
+        players.append(Player(u.name))
 
     veto = Veto(
         ctx.channel.name,
@@ -163,7 +157,11 @@ def start_veto(ctx, users: List[str]) -> str:
     return message
 
 
-def start_best_of_veto(ctx, users: List[str], num_of_maps: int) -> str:
+def start_best_of_veto(
+    ctx,
+    users: List[discord.User],
+    num_of_maps: int,
+) -> str:
     # system for BO1
     # maps: dust2, inferno, mirage, nuke, overpass, train, vertigo
     #       ban,   ban,     ban,    ban , ban,      ban,   decider
@@ -204,12 +202,9 @@ def start_best_of_veto(ctx, users: List[str], num_of_maps: int) -> str:
     message = add_list_to_message(message, maps, [])
     message += '```\n\nVeto order:\n'
 
-    rnd = random.randint(0, num_of_players - 1)
-    starter = str(users.pop(rnd))
-    second = str(users[0])
-    if '#' in starter:
-        starter, _ = starter.split('#')
-        second, _ = second.split('#')
+    random.shuffle(users)
+    starter = users[0].name
+    second = users[1].name
 
     players = [
         Player(starter), Player(second),
