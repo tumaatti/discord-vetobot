@@ -233,10 +233,24 @@ async def vetostartv(ctx, channel_name):
     await ctx.send(message)
 
 
+@bot.command(help='<user> <user> Start veto for best of 1 series')
+async def bo1(ctx, *args: discord.User):
+    users = list(args)
+    message = start_best_of_veto(ctx, users, 1)
+    await ctx.send(message)
+
+
 @bot.command(help='<user> <user> Start veto for best of 3 series')
 async def bo3(ctx, *args: discord.User):
     users = list(args)
     message = start_best_of_veto(ctx, users, 3)
+    await ctx.send(message)
+
+
+@bot.command(help='<user> <user> Start veto for best of 5 series')
+async def bo5(ctx, *args: discord.User):
+    users = list(args)
+    message = start_best_of_veto(ctx, users, 5)
     await ctx.send(message)
 
 
