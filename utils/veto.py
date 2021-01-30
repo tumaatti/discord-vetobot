@@ -59,6 +59,9 @@ class Veto:
         return banned, picked, banned_unique, picked_unique
 
     def veto_map(self, vetomap, vetoer):
+        if vetoer != self.players[self.vetoed].name.lower():
+            return 'incorrect vetoer'
+
         if self.veto_running == 10:
             if (
                 vetomap.lower().capitalize() in self.banned_maps and

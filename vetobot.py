@@ -196,10 +196,6 @@ async def veto(ctx, vetomap: str) -> None:
     vetoer = str(ctx.author).lower()
     vetoer, _ = vetoer.split('#')
 
-    if vetoer != veto.players[veto.vetoed].name.lower():
-        await ctx.send('incorrect vetoer')
-        return
-
     message = veto.veto_map(vetomap, vetoer)
     await ctx.send(message)
     if veto.vetoed == len(veto.players):
