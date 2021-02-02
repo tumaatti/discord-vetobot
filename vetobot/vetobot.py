@@ -1,5 +1,6 @@
 import os
 import random
+
 from typing import List
 
 import discord.utils
@@ -7,11 +8,11 @@ import discord.utils
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from utils.message_utils import add_list_to_message
-from utils.message_utils import construct_message_best_of_veto_list
-from utils.message_utils import construct_message_veto_list
-from utils.player import Player
-from utils.veto import Veto
+from message_utils import add_list_to_message
+from message_utils import construct_message_best_of_veto_list
+from message_utils import construct_message_veto_list
+from player import Player
+from veto import Veto
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')

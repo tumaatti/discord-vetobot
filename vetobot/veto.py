@@ -3,11 +3,11 @@ import copy
 from typing import List
 from typing import Tuple
 
-from utils.player import Player
-from utils.message_utils import add_list_to_message
-from utils.message_utils import construct_message_veto_list
-from utils.message_utils import construct_message_best_of_veto_list
-from utils.message_utils import construct_vetoed_maps
+from player import Player
+from message_utils import add_list_to_message
+from message_utils import construct_message_veto_list
+from message_utils import construct_message_best_of_veto_list
+from message_utils import construct_vetoed_maps
 
 
 class Veto:
