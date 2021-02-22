@@ -77,7 +77,7 @@ def start_veto(ctx, users: List[discord.User]) -> str:
     random.shuffle(users)
     players: List[Player] = []
     for u in users:
-        players.append(Player(u.name))
+        players.append(Player(u))
 
     veto = Veto(
         ctx.channel.name,
