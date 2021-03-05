@@ -52,7 +52,7 @@ class Veto:
                     banned_unique.append(p.mapveto)
                 banned.append(p.mapveto)
             elif p.vetotype == 'pick':
-                if p.mapveto not in picked and self.veto_running == 10:
+                if p.mapveto not in picked and self.veto_running in (10, 20):
                     picked_unique.append(p.mapveto)
                 picked.append(p.mapveto)
 
@@ -62,10 +62,10 @@ class Veto:
         if vetoer != self.players[self.vetoed].name.lower():
             return 'incorrect vetoer'
 
-        if self.veto_running == 10:
+        if self.veto_running == 10 or self.veto_running == 20:
             if (
                 vetomap.lower().capitalize() in self.banned_maps and
-                self.player[self.vetoed].vetotype == 'pick'
+                self.players[self.vetoed].vetotype == 'pick'
             ):
                 return 'map banned'
 

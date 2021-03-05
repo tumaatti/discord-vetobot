@@ -34,6 +34,7 @@ bot = commands.Bot(
 # 3 - BO3 veto
 # 5 - BO5 veto
 # 10 - normal casual veto
+# 20 - normal casual veto with all picks
 
 
 def end_veto(ctx):
@@ -44,7 +45,7 @@ def end_veto(ctx):
             RUNNING_VETOS.pop(i)
 
 
-def start_veto(ctx, users: List[discord.User]) -> str:
+def start_veto(ctx, users: List[discord.User], veto_type: int) -> str:
     global RUNNING_VETOS
 
     num_of_players = len(users)
@@ -82,7 +83,7 @@ def start_veto(ctx, users: List[discord.User]) -> str:
     veto = Veto(
         ctx.channel.name,
         ctx.guild.name,
-        10,
+        veto_type,
         maps,
         players,
     )
@@ -209,8 +210,25 @@ async def veto(ctx, vetomap: str) -> None:
     help='<user> <user> ... Start veto with discord usernames',
 )
 async def vetostart(ctx, *args: discord.User):
-    users = list(args)
-    message = start_veto(ctx, users)
+    tmp = list(args)
+    users = []
+    for u in tmp:
+        users.append(u.name)
+    message = start_veto(ctx, users, 10)
+    await ctx.send(message)
+
+
+@bot.command(
+    name='vetostartp',
+    pass_sontext=True,
+    help='<user> <user> ... Start veto with discord usernames',
+)
+async def vetostartp(ctx, *args: discord.User):
+    tmp = list(args)
+    users = []
+    for u in tmp:
+        users.append(u.name)
+    message = start_veto(ctx, users, 20)
     await ctx.send(message)
 
 
@@ -226,7 +244,26 @@ async def vetostartv(ctx, channel_name):
     for m in voice_channel.members:
         users.append(m.name)
 
-    message = start_veto(ctx, users)
+    message = start_veto(ctx, users, 10)
+    await ctx.send(message)
+
+
+@bot.command(
+    help=(
+        f'<voice channelname> Start veto with users in voice channel with'
+        f'all picks'
+    ),
+)
+async def vetostartvp(ctx, channel_name):
+    voice_channel = discord.utils.get(
+        ctx.guild.voice_channels,
+        name=channel_name,
+    )
+    users = []
+    for m in voice_channel.members:
+        users.append(m.name)
+
+    message = start_veto(ctx, users, 20)
     await ctx.send(message)
 
 
