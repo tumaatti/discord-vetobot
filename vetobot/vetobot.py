@@ -1,13 +1,10 @@
 import os
 import random
-
 from typing import List
 
 import discord.utils
-
 from discord.ext import commands
 from dotenv import load_dotenv
-
 from message_utils import add_list_to_message
 from message_utils import construct_message_best_of_veto_list
 from message_utils import construct_message_veto_list
@@ -250,8 +247,8 @@ async def vetostartv(ctx, channel_name):
 
 @bot.command(
     help=(
-        f'<voice channelname> Start veto with users in voice channel with'
-        f'all picks'
+        '<voice channelname> Start veto with users in voice channel with '
+        'all picks'
     ),
 )
 async def vetostartvp(ctx, channel_name):
