@@ -52,7 +52,7 @@ def start_veto(ctx, users: List[discord.User], veto_type: int) -> str:
         'dust2',
         'inferno',
         'mirage',
-        'nuke',
+        # 'nuke',
         'overpass',
         'train',
         'vertigo',
