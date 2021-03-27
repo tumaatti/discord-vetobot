@@ -1,3 +1,4 @@
+import argparse
 import os
 import random
 from typing import List
@@ -13,6 +14,7 @@ from veto import Veto
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
+FUCK_NUKE = False
 
 description = 'A bot https://github.com/tumaatti/discord-vetobot'
 
@@ -44,19 +46,23 @@ def end_veto(ctx):
 
 def start_veto(ctx, users: List[discord.User], veto_type: int) -> str:
     global RUNNING_VETOS
+    global FUCK_NUKE
 
     num_of_players = len(users)
+
     maps = [
         'anubis',
         'cache',
         'dust2',
         'inferno',
         'mirage',
-        # 'nuke',
+        'nuke',
         'overpass',
         'train',
         'vertigo',
     ]
+    if FUCK_NUKE:
+        maps.remove('nuke')
 
     for i in RUNNING_VETOS:
         if i.channel == ctx.channel.name and i.server == ctx.guild.name:
@@ -284,6 +290,16 @@ async def bo5(ctx, *args: discord.User):
     message = start_best_of_veto(ctx, users, 5)
     await ctx.send(message)
 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '--fucknuke',
+    action='store_true',
+    help='Remove Nuke from casual veto'
+)
+args = parser.parse_args()
+
+if args.fucknuke:
+    FUCK_NUKE = True
 
 RUNNING_VETOS: List[Veto] = []
 
