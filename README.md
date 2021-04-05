@@ -17,5 +17,5 @@ vetostart   <user> <user> ... Start veto with discord usernames
 vetostartp  <user> <user> ... Start veto with discord usernames
 vetostartv  <voice channelname> Start veto with users in voice channel
 vetostartvp <voice channelname> Start veto with users in voice channel with...
-vetostop    Abort current vetot
+vetostop    Abort current veto
 ```
