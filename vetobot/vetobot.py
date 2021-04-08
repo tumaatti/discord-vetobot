@@ -86,12 +86,8 @@ def start_veto(ctx, users: List[discord.User], veto_type: int) -> str:
 
     RUNNING_VETOS.append(veto)
 
-    message = ''
-    message = veto.add_list_to_message(message, maps, [])
-    message += '```\n\nVeto order:\n'
-
+    message = veto.add_list_to_message('', maps, [])
     message += veto.construct_message_veto_list()
-    message += '```'
 
     return message
 
@@ -157,12 +153,8 @@ def start_best_of_veto(
 
     RUNNING_VETOS.append(veto)
 
-    message = ''
-    message = veto.add_list_to_message(message, maps, [])
-    message += '```\n\nVeto order:\n'
-
+    message = veto.add_list_to_message('', maps, [])
     message += veto.construct_message_best_of_veto_list()
-    message += '```'
 
     return message
 
@@ -197,6 +189,10 @@ async def veto(ctx, vetomap: str) -> None:
 
     vetoer = str(ctx.author).lower()
     vetoer, _ = vetoer.split('#')
+
+    if vetomap not in veto.maps:
+        await ctx.send('map not in map pool')
+        return
 
     message = veto.veto_map(vetomap, vetoer)
     await ctx.send(message)
@@ -291,7 +287,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--fucknuke',
     action='store_true',
-    help='Remove Nuke from casual veto'
+    help='Remove Nuke from casual veto',
 )
 args = parser.parse_args()
 
