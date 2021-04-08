@@ -2,6 +2,10 @@
 
 Add file .venv to root folder with the TOKEN from [discord developer portal](https://discord.com/developers/applications/).
 
+```python
+TOKEN='YOUR TOKEN'
+```
+
 Install requirements with `pip install -r requirements.txt`.
 
 ## Usage:
