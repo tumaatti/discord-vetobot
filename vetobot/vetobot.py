@@ -6,9 +6,6 @@ from typing import List
 import discord.utils
 from discord.ext import commands
 from dotenv import load_dotenv
-from message_utils import add_list_to_message
-from message_utils import construct_message_best_of_veto_list
-from message_utils import construct_message_veto_list
 from player import Player
 from veto import Veto
 
@@ -74,10 +71,6 @@ def start_veto(ctx, users: List[discord.User], veto_type: int) -> str:
     elif num_of_players > 5:
         return 'too many players'
 
-    message = ''
-    message = add_list_to_message(message, maps, [])
-    message += '```\n\nVeto order:\n'
-
     random.shuffle(users)
     players: List[Player] = []
     for u in users:
@@ -93,7 +86,11 @@ def start_veto(ctx, users: List[discord.User], veto_type: int) -> str:
 
     RUNNING_VETOS.append(veto)
 
-    message += construct_message_veto_list(veto)
+    message = ''
+    message = veto.add_list_to_message(message, maps, [])
+    message += '```\n\nVeto order:\n'
+
+    message += veto.construct_message_veto_list()
     message += '```'
 
     return message
@@ -140,10 +137,6 @@ def start_best_of_veto(
     if num_of_players != 2:
         return 'need 2 players for veto!'
 
-    message = ''
-    message = add_list_to_message(message, maps, [])
-    message += '```\n\nVeto order:\n'
-
     random.shuffle(users)
     starter = users[0].name
     second = users[1].name
@@ -164,7 +157,11 @@ def start_best_of_veto(
 
     RUNNING_VETOS.append(veto)
 
-    message += construct_message_best_of_veto_list(veto)
+    message = ''
+    message = veto.add_list_to_message(message, maps, [])
+    message += '```\n\nVeto order:\n'
+
+    message += veto.construct_message_best_of_veto_list()
     message += '```'
 
     return message
