@@ -39,6 +39,7 @@ def end_veto(ctx):
     for i, r in enumerate(RUNNING_VETOS):
         if r.channel == ctx.channel.name and r.server == ctx.guild.name:
             RUNNING_VETOS.pop(i)
+            return 'Veto ended!'
 
 
 def start_veto(ctx, users: List[discord.User], veto_type: int) -> str:
@@ -171,8 +172,7 @@ async def ping(ctx):
 
 @bot.command(help='Abort current veto')
 async def vetostop(ctx):
-    end_veto(ctx)
-    await ctx.send('veto aborted')
+    await ctx.send(end_veto(ctx))
 
 
 @bot.command(help='Veto on your turn')
@@ -197,7 +197,7 @@ async def veto(ctx, vetomap: str) -> None:
     message = veto.veto_map(vetomap, vetoer)
     await ctx.send(message)
     if veto.vetoed == len(veto.players):
-        end_veto(ctx)
+        await ctx.send(end_veto(ctx))
 
 
 @bot.command(
