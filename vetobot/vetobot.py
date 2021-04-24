@@ -9,6 +9,7 @@ from discord.ext import commands
 
 from dotenv import load_dotenv
 
+from db.handledb import db
 from _map import Map
 from player import Player
 from veto import Veto
@@ -42,6 +43,7 @@ def end_veto(ctx):
 
     for i, r in enumerate(RUNNING_VETOS):
         if r.channel == ctx.channel.name and r.server == ctx.guild.name:
+            db.write_data_to_db(r)
             RUNNING_VETOS.pop(i)
             return 'Veto ended!'
 
