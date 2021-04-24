@@ -6,6 +6,7 @@ from typing import List
 import discord.utils
 from discord.ext import commands
 from dotenv import load_dotenv
+from _map import Map
 from player import Player
 from veto import Veto
 
@@ -49,18 +50,18 @@ def start_veto(ctx, users: List[discord.User], veto_type: int) -> str:
     num_of_players = len(users)
 
     maps = [
-        'anubis',
-        'cache',
-        'dust2',
-        'inferno',
-        'mirage',
-        'nuke',
-        'overpass',
-        'train',
-        'vertigo',
+        Map('anubis'),
+        Map('cache'),
+        Map('dust2'),
+        Map('inferno'),
+        Map('mirage'),
+        Map('overpass'),
+        Map('train'),
+        Map('vertigo'),
     ]
-    if FUCK_NUKE:
-        maps.remove('nuke')
+
+    if not FUCK_NUKE:
+        maps.append(Map('nuke'))
 
     for i in RUNNING_VETOS:
         if i.channel == ctx.channel.name and i.server == ctx.guild.name:
@@ -116,13 +117,13 @@ def start_best_of_veto(
     global RUNNING_VETOS
 
     maps = [
-        'dust2',
-        'inferno',
-        'mirage',
-        'nuke',
-        'overpass',
-        'train',
-        'vertigo',
+        Map('dust2'),
+        Map('inferno'),
+        Map('mirage'),
+        Map('nuke'),
+        Map('overpass'),
+        Map('train'),
+        Map('vertigo'),
     ]
 
     num_of_players = len(users)

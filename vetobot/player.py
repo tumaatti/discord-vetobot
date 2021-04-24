@@ -1,3 +1,6 @@
+from _map import Map
+
+
 class Player:
     def __init__(self, name: str):
         self.name = name
@@ -7,7 +10,7 @@ class Player:
     def __str__(self):
         return f'{self.name} {self.mapveto}'
 
-    def add_map(self, mapveto: str):
+    def add_map(self, mapveto: Map):
         self.mapveto = mapveto.capitalize()
 
     def set_vetotype(self, vetotype: str):
