@@ -1,11 +1,14 @@
 import argparse
 import os
 import random
+
 from typing import List
 
 import discord.utils
 from discord.ext import commands
+
 from dotenv import load_dotenv
+
 from _map import Map
 from player import Player
 from veto import Veto

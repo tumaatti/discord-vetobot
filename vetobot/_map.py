@@ -10,3 +10,6 @@ class Map:
 
     def __eq__(self, other):
         return other.__str__().lower() == self.__str__().lower()
+
+    def capitalize(self):
+        return self.name.capitalize()
