@@ -2,6 +2,7 @@ import copy
 from typing import List
 from typing import Tuple
 
+from _map import Map
 from player import Player
 
 
@@ -11,7 +12,7 @@ class Veto:
         channel: str,
         server: str,
         veto_running: int,
-        maps: List[str],
+        maps: List[Map],
         players: List[Player],
     ):
         self.maps = maps
@@ -20,8 +21,8 @@ class Veto:
         self.veto_running = veto_running
         self.players = players
         self.vetoed = 0
-        self.banned_maps: List[str] = []
-        self.picked_maps: List[str] = []
+        self.banned_maps: List[Map] = []
+        self.picked_maps: List[Map] = []
 
     def __str__(self):
         return (
@@ -34,22 +35,19 @@ class Veto:
         Tuple[List[str], List[str], List[str], List[str]]
     ):
         picked: List[str] = []
-        picked_unique: List[str] = []
-
         banned: List[str] = []
-        banned_unique: List[str] = []
 
         for p in self.players:
             if not p.mapveto:
                 continue
             if p.vetotype == 'ban':
-                if p.mapveto not in banned and self.veto_running == 10:
-                    banned_unique.append(p.mapveto)
                 banned.append(p.mapveto)
             elif p.vetotype == 'pick':
-                if p.mapveto not in picked and self.veto_running in (10, 20):
-                    picked_unique.append(p.mapveto)
                 picked.append(p.mapveto)
+
+        # remove duplicates from lists
+        banned_unique = list(set(banned))
+        picked_unique = list(set(picked))
 
         return banned, picked, banned_unique, picked_unique
 
@@ -57,18 +55,19 @@ class Veto:
         if vetoer != self.players[self.vetoed].name.lower():
             return 'incorrect vetoer'
 
-        if (
-            vetoer == self.players[self.vetoed].name.lower()
-        ):
-            self.players[self.vetoed].add_map(vetomap.lower())
-            self.vetoed += 1
-
         if self.veto_running in (10, 20):
             if (
                 vetomap.lower().capitalize() in self.banned_maps and
                 self.players[self.vetoed].vetotype == 'pick'
             ):
                 return 'map banned'
+
+            if (
+                vetoer == self.players[self.vetoed].name.lower()
+            ):
+                self.players[self.vetoed].add_map(vetomap.lower())
+                self.vetoed += 1
+
             (
                 banned,
                 picked,
@@ -88,7 +87,8 @@ class Veto:
                     if picked.count(pu) % 2 != 0:
                         self.picked_maps.append(pu)
                     else:
-                        self.picked_maps.append(f'~~{pu.capitalize()}~~')
+                        pu = pu.capitalize()
+                        self.picked_maps.append(f'~~{pu}~~')
 
             message = self.add_list_to_message('', self.maps, self.banned_maps)
             message += self.construct_message_veto_list()
@@ -101,6 +101,12 @@ class Veto:
             vetomap.lower().capitalize() in self.picked_maps
         ):
             return 'map already selected'
+
+        if (
+            vetoer == self.players[self.vetoed].name.lower()
+        ):
+            self.players[self.vetoed].add_map(vetomap.lower())
+            self.vetoed += 1
 
         self.banned_maps, self.picked_maps, _, _ = self.sort_picks_and_bans()
 
@@ -120,15 +126,18 @@ class Veto:
 
         return message
 
-    def add_list_to_message(self, base: str, maps: List, bn: List) -> str:
-        for i, m in enumerate(maps):
-            banned = m.capitalize()
-            if banned in bn:
-                banned = f'~~{banned}~~'
+    def add_list_to_message(
+        self, base: str, maps: List, banned_maps: List,
+    ) -> str:
+        for i, _map in enumerate(maps):
+            _map = _map
+            if _map in banned_maps:
+                _map = f'~~{_map}~~'
+
             if i == len(maps) - 1:
-                base += f'{banned}'
+                base += f'{_map}'
             else:
-                base += f'{banned}, '
+                base += f'{_map}, '
 
         return base
 
@@ -146,6 +155,7 @@ class Veto:
                     f"Ban:  {p.name} {(max_p - len(p.name)) * ' ' }"
                     f'{p.mapveto}\n'
                 )
+                # TODO: move set_vetotype out of message handling
                 p.set_vetotype('ban')
             else:
                 message += (
