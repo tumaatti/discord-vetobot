@@ -9,7 +9,7 @@ from discord.ext import commands
 
 from dotenv import load_dotenv
 
-from db.handledb import db
+from handledb import db
 from _map import Map
 from player import Player
 from veto import Veto
