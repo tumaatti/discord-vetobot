@@ -55,6 +55,7 @@ def start_veto(ctx, users: List[discord.User], veto_type: int) -> str:
     num_of_players = len(users)
 
     maps = [
+        Map('ancient'),
         Map('anubis'),
         Map('cache'),
         Map('dust2'),
