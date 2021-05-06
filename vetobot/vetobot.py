@@ -1,16 +1,13 @@
 import argparse
 import os
 import random
-
 from typing import List
 
 import discord.utils
-from discord.ext import commands
-
-from dotenv import load_dotenv
-
-from handledb import db
 from _map import Map
+from discord.ext import commands
+from dotenv import load_dotenv
+from handledb import db
 from player import Player
 from veto import Veto
 
@@ -40,10 +37,11 @@ bot = commands.Bot(
 
 def end_veto(ctx):
     global RUNNING_VETOS
+    log_db = db('vetobot.db')
 
     for i, r in enumerate(RUNNING_VETOS):
         if r.channel == ctx.channel.name and r.server == ctx.guild.name:
-            db.write_data_to_db(r)
+            log_db.write_data_to_db(r)
             RUNNING_VETOS.pop(i)
             return 'Veto ended!'
 
@@ -106,17 +104,17 @@ def start_best_of_veto(
     num_of_maps: int,
 ) -> str:
     # system for BO1
-    # maps: dust2, inferno, mirage, nuke, overpass, train, vertigo
+    # maps: dust2, inferno, mirage, nuke, overpass, ancient, vertigo
     #       ban,   ban,     ban,    ban , ban,      ban,   decider
     #       0      1        2       3     4         5      6
 
     # system for BO3
-    # maps: dust2, inferno, mirage, nuke, overpass, train, vertigo
+    # maps: dust2, inferno, mirage, nuke, overpass, ancient, vertigo
     #       ban,   ban,     pick,   pick, ban,      ban,   decider
     #       0      1        2       3     4         5      6
 
     # system for BO5
-    # maps: dust2, inferno, mirage, nuke, overpass, train, vertigo
+    # maps: dust2, inferno, mirage, nuke, overpass, ancient, vertigo
     #       ban,   ban,     pick,   pick, pick,     pick,  decider
     #       0      1        2       3     4         5      6
 
@@ -128,7 +126,7 @@ def start_best_of_veto(
         Map('mirage'),
         Map('nuke'),
         Map('overpass'),
-        Map('train'),
+        Map('ancient'),
         Map('vertigo'),
     ]
 

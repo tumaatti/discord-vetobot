@@ -3,8 +3,11 @@ import sqlite3
 
 
 class db:
-    def createdb():
-        con = sqlite3.connect('vetobot.db')
+    def __init__(self, name):
+        self.name = name
+
+    def createdb(self):
+        con = sqlite3.connect(self)
 
         cur = con.cursor()
         tbl = '''\
@@ -19,16 +22,16 @@ class db:
         '''
         cur.execute(tbl)
         con.commit()
-        # con.close()
+        con.close()
 
-    def write_data_to_db(veto):
-        con = sqlite3.connect('vetobot.db')
+    def write_data_to_db(self, veto):
+        con = sqlite3.connect(self.name)
         cur = con.cursor()
 
         try:
-            cur.execute("SELECT * FROM vetos")
+            cur.execute('SELECT * FROM vetos')
         except sqlite3.OperationalError:
-            db.createdb()
+            db.createdb(self.name)
 
         today = datetime.date.today()
 
@@ -41,14 +44,14 @@ class db:
             mapveto = p.mapveto
             vetotype = p.vetotype
             ins = (
-                f"INSERT INTO vetos VALUES ("
+                f'INSERT INTO vetos VALUES ('
                 f"'{date}',"
                 f"'{server}',"
                 f"'{channel}',"
                 f"'{player}',"
                 f"'{mapveto}',"
                 f"'{vetotype}'"
-                f")"
+                f')'
             )
             cur.execute(ins)
 
